@@ -6,7 +6,7 @@
 **\* Q1.** 여기서 객체(object)는 뭘 뜻하나? [java language specification 4.3.1](https://docs.oracle.com/javase/specs/jls/se7/html/jls-4.html#jls-4.3.1)에서 object의 개념을 설명한다:<br>
 > an object is a class instance or an array.<br>
 
-따라서 bject는 클래스 인스턴스나 배열을 말한다.<br>
+따라서 object는 클래스 인스턴스나 배열을 말한다.<br>
 
 **\* Q2.** 객체를 할당한다(allocating)는 건 뭘 뜻하나?<br>
 
