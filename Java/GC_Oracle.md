@@ -69,3 +69,19 @@ compaction이 없기 때문에 파편화가 발생할 수 있다.
 
 
 ## Z GC
+
+# 버전별 default GC
+
+## 이전 시도
+내 컴퓨터에서 사용하고 있는 [default GC 확인 명령어](https://stackoverflow.com/questions/5024959/find-which-type-of-garbage-collector-is-running)를 찾아봤다. 이 명령어로 내 OS의 default GC는 알 수 있었지만, 전 OS 공통인지 확인은 불가했다. 
+
+버전별 default GC를 물어본 [질문](https://stackoverflow.com/a/63954277)을 찾아봤다.
+jdk 8의 default GC는 Parallel GC이고, jdk 9부터는 default GC가 G1 GC라고 되어있다.
+
+하지만 출처가 나와있지 않아서 조금 더 찾아봤다.
+
+[oracle의 java magazine 기사](https://blogs.oracle.com/javamagazine/post/java-garbage-collectors-evolution)에서 다음과 같이 나온다.
+> **The Parallel GC is the default collector for JDK 8 and earlier.** It focuses on throughput by trying to get work done as quickly as possible with minimal regard to latency (pauses).
+> **The G1 GC has been the default collector since JDK 9.**
+
+한 번 더 확인해보니 맞다는 걸 알 수 있었다.
