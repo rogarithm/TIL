@@ -48,9 +48,9 @@ CPU 하나만 쓰고, GC 과정 중엔 애플리케이션 실행이 중단되는
 
 ### old collection
 - stop-the-world 방식으로 진행되고, 과정 대부분을 sliding compaction을 사용하는 parallel 방식을 이용한다.
-- 세 단계로 나뉜다:
+- 세 단계로 나뉜다: \*라고 했는데 초기 단계까지 포함하면 네 가지다. 초기 단계를 marking 단계에 포함해서 세 단계라고 하는 것 같다.
 
-#### 첫번째 단계
+#### 초기 단계
 - 각 영역을 고정 크기 영역이 되도록 논리적으로 나눈다.
 
 #### marking 단계
@@ -84,27 +84,30 @@ CPU 하나만 쓰고, GC 과정 중엔 애플리케이션 실행이 중단되는
 ### old collection
 - old collection 과정 대부분이 애플리케이션 실행과 동시에 진행된다.
 
-
-- initial mark로 시작한다. 이때 짧게 멈추게 된다. 이는 애플리케이션 코드로부터 바로 reachable한 살아있는 객체의 초기 집합을 식별하기 위한 것이다.
+#### sweep 이전 단계
+- 처음에 짧게 멈춘다(initial mark). 이는 애플리케이션 코드로부터 directly reachable한 살아있는 객체의 초기 집합을 식별하기 위한 것이다.
 - 그 다음 concurrent marking 단계 동안 이 초기 집합으로부터 transitively reachable한 모든 살아있는 객체를 표시한다.
-- marking 단계가 진행될 동안 애플리케이션 실행 및 참조 필드가 업데이트되고 있기 때문에, concurrent marking 단계 종료 시에 모든 살아있는 객체가 표시될 것이라고 확신할 수 없다.
-- 이 점을 처리하기 위해, 애플리케이션이 두 번째로 멈추고(remark), 이때 concurrent  marking phase 동안 변경된 객체를 재점검해서 marking 과정을 마무리한다.
-- 두 번째 멈춤(remark pause)이 첫 번째 멈춤(initial mark)보다 상당히 길기 때문에, 효율 증대를 위해 여러 스레드를 병렬로 돌린다.
+- marking 단계가 진행될 동안에도 애플리케이션이 실행 중이고 참조 필드를 업데이트하기 때문에, concurrent marking 단계 종료 시에 모든 살아있는 객체가 표시될 것이라고 확신할 수 없다.
+- 그래서 애플리케이션이 두 번째로 멈추고(remark), 이때 concurrent marking phase 동안 변경된 객체를 재점검해서 marking 과정을 마무리한다.
+- 두 번째 멈춤(remark pause)이 첫 번째 멈춤(initial mark)보다 상당히 길기 때문에, 효율을 높이려고 여러 스레드를 병렬로 돌린다.
 
-- remark phase 끝에, heap 안 모든 살아남은 객체가 확실히 표시되고, 이후 단계인 concurrent sweep 단계에 그때까지 식별된 가비지 전부를 reclaim해서 빈 공간으로 만든다.
+#### sweep 단계
+- remark phase가 끝나면 heap 안 모든 살아남은 객체가 확실히 표시된다.
+- 다음 단계인 concurrent sweep 단계에 그때까지 식별된 가비지 전부를 reclaim해서 빈 공간으로 만든다.
 
-- remark phase 동안의 객체 재점검 등의 동작이 garbage collector가 해야 할 일을 늘리지만, 중단 시간을 줄이기 위한 트레이드 오프로 볼 수 있다.
-
-- CMS 방식은 **compacting을 하지 않는 유일한 GC 방식**이다.
-- 이렇게 함으로써 GC 실행 시간은 줄어들지만, 빈 공간이 서로 떨어져 있기 때문에 다음 객체가 할당될 빈 공간의 위치를 나타낼 때 포인터 결정이 복잡해진다. 할당해야 할 객체의 크기에 맞는 빈 공간을 찾는 것이 어려워진다는 얘기다.
-- 결과적으로 old 영역으로의 할당은 bump-the-pointer 기법을 쓸 수 있었을 때보다 큰 비용을 필요로 한다.
-- 이는 young collection에도 추가적인 overhead를 더하는데, old 영역으로의 할당 대부분이 young collection 중 객체 이동에 의한 것이기 때문이다.
-
-- 또 다른 단점으로, CMS 방식은 큰 heap을 필요로 한다.
-- marking phase 중에도 애플리케이션이 실행될 수 있기 때문에 old 영역이 계속해서 커질 가능성을 안고 있다.
-- 또한 GC 과정 도중 가비지가 된 객체가 있을 수 있고, 이러한 객체가 차지하는 공간은 다음번 old collection 전까지는 비울 수 없다. 이러한 객체를 floating garbage라고 한다.
-
-- compaction이 없기 때문에 파편화가 발생할 수 있다.
+#### CMS GC의 단점들
+1. remark phase 동안 객체 재점검 작업 등으로 인해 garbage collector가 해야 할 일이 늘어난다.
+- 이건 중단 시간을 줄이기 위해 보통 하는 트레이드 오프로 볼 수 있다.
+2. **compacting을 하지 않는 유일한 GC 방식**이다.
+- 이렇게 함으로써 GC 실행 시간은 줄어들지만, 빈 공간이 서로 떨어져 있기 때문에 다음 객체가 할당될 빈 공간의 위치를 나타낼 때 포인터 결정이 복잡해진다.
+- 다시 말해 할당해야 할 객체의 크기에 맞는 빈 공간을 찾는 것이 어려워진다는 얘기다.
+- 결과적으로 old 영역으로의 할당은 (빈 메모리 분포가 contiguous해서) bump-the-pointer 기법을 쓸 수 있었을 때보다 큰 비용을 필요로 한다.
+- 이는 young collection에도 추가적인 부담을 주는데, old 영역으로의 할당 대부분이 young collection 중 객체 이동에 의한 것이기 때문이다.
+3. 큰 heap을 필요로 한다.
+- marking phase 중에도 애플리케이션이 실행되기 때문에, 메모리를 계속해서 할당할 수 있어 old 영역이 계속해서 커질 가능성을 안고 있다.
+- 또한 GC 과정 도중 가비지가 된 객체가 있을 수 있고, 이러한 객체가 차지하는 공간은 (다음 mark 단계 전까지는 살아있는 객체로 여겨지기 때문에) 다음번 old collection 전까지는 비울 수 없다. 이러한 객체를 floating garbage라고 한다.
+4. compaction이 없기 때문에 파편화가 발생할 수 있다.
+- 파편화에 대응하기 위해 CMS collector가 자주 쓰는 객체 크기를 추적해 추후 예상되는 메모리 필요량을 추측하고, 이 필요에 맞게 빈 block을 쪼개거나 합친다.
 
 
 ## G1(Garbage First) GC
