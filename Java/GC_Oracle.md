@@ -116,58 +116,61 @@ G1 GC
 - low-pause, server-style generational garbage collector for Java HotSpot VM.
 - uses concurrent and parallel phases 
 
-The G1 GC achieves automatic memory management through the following operations:
-- Allocating objects to a young generation and promoting aged objects into an old generation.
-- Finding live objects in the old generation through a concurrent (parallel) marking phase. The Java HotSpot VM triggers the marking phase when the total Java heap occupancy exceeds the default threshold.
-- Recovering free memory by compacting live objects through parallel copying.
+#### 동작 방식
+- young 영역에 객체를 할당하고 나이든 객체를 old 영역으로 옮긴다(promote).
+- concurrent (parallel) marking 단계를 통해 old 영역 안 live 객체를 찾는다. Java heap 안 객체가 차지하는 공간이 정해진 한계점을 넘으면 Java HotSpot VM에서 marking 단계를 실행한다.
+- parallel copying으로 live 객체를 compacting해서 빈 메모리를 만들어낸다.
 
-The G1 GC is a regionalized and generational garbage collector
-heap을 일정한 크기의 region으로 나눈다.
-region을 모아서 eden, survivor, old generation를 구성한다.
+#### regionalized and generational garbage collector
+- heap을 일정한 크기의 region으로 나눈다.
+- region을 모아서 eden, survivor, old generation를 구성한다.
 
-The G1 GC has a pause time-target that it tries to meet (soft real time). 
- young collection 동안 eden, survivor 크기를 soft real-time target에 맞도록 조정한다
- mixed collection 동안 GC되는 old region의 수를 조정한다. 기준은 mixed garbage collection의 target number, heap의 각  region 안 살아있는 객체 비율, 허용 가능한 heap waste 비율
+#### has a pause time-target that it tries to meet (soft real time).
+- young collection 동안 eden, survivor 크기를 soft real-time target에 맞도록 조정한다
+- mixed collection 동안 GC되는 old region 수를 조정한다. 기준은 mixed garbage collection의 target number, heap의 각 region 안 살아있는 객체 비율, 허용 가능한 heap waste 비율이다.
 
-살아있는 객체를 한 region 집합(Collection Set)으로부터 다른 region로 incremental parallel copy해서 heap fragmentation을 줄인다
- heap 공간을 최대한 비우는 게 목표이며, 가장 reclaimable한(가비지가 많아서 비울 수 있는 공간이 많은) 공간을 갖는 region부터 시작한다.
- 다만 설정해놓은 pause time goal은 넘지 않도록 한다.
+#### 살아있는 객체를 한 region 집합(Collection Set, CSet)으로부터 다른 region으로 incremental parallel copy해서 heap fragmentation을 줄인다
+- heap 공간을 최대한 비우는 게 목표이며, 가장 reclaimable한(가비지가 많아서 비울 수 있는 공간이 많은) 공간을 갖는 region부터 시작한다.
+- 다만 설정해놓은 pause time goal은 넘지 않도록 한다.
 
-개별적인 Remembered Sets (RSets)를 사용해서 references into regions를 추적한다.
- 개별적인 RSets를 사용함으로써 region에 대한 parallel and independent collection이 가능한데, references into region에 대해 heap 전체가 아니라 region의 RSet을 스캔해야만 하기 때문이다.
- post-write barrier로 heap에 일어나는 변화를 기록하고 RSets를 업데이트한다.
+#### 개별적인 Remembered Sets(RSets)를 사용해서 references into regions를 추적한다.
+- 개별적인 RSets를 사용함으로써 region에 parallel and independent collection을 할 수 있다. references into region에 대해 heap 전체가 아니라 region의 RSet을 스캔해야만 하기 때문이다.
+- post-write barrier로 heap에 일어나는 변화를 기록하고 RSets를 업데이트한다.
 
-Garbage Collection Phases
-stop-the-world young GC와 stop-the-world mixed GC가 구성하는 evacuation pause 말고도 G1 GC는 parallel, concurrent, multiphase marking cycle을 갖는다. Snapshot-At-The_Beginning (SATB) 알고리즘을 사용해서 marking cycle 처음에 heap 안 살아있는 객체 집합에 대한 스냅샷을 가진다. 살아있는 객체 집합은 스냅샷의 살아있는 객체와 marking cycle 시작 이후 할당된 객체로 구성된다. G1 GC marking 알고리즘은 pre-write barrier를 써서 logical snapshot의 부분인 객체를 기록하고 mark한다.
+#### Garbage Collection Phases
+- stop-the-world young GC와 stop-the-world mixed GC가 구성하는 evacuation pause 말고도 G1 GC에는 parallel, concurrent, multiphase marking cycle가 있다. 
+- Snapshot-At-The-Beginning (SATB) 알고리즘을 사용해서 marking cycle 처음에 heap 안 살아있는 객체 집합에 대한 스냅샷을 가진다.
+- 살아있는 객체 집합은 스냅샷의 살아있는 객체와 marking cycle 시작 이후 할당된 객체로 구성된다.
+- G1 GC marking 알고리즘은 pre-write barrier를 써서 logical snapshot의 부분인 객체를 기록하고 mark한다.
 
-Young Garbage Collections
-G1 GC는 eden을 구성하는 region으로부터의 할당 요청을 만족한다.
-young GC 동안, 이전 GC의 eden region과 survivor region에 대해 GC한다.
-eden과 survivor의 살아있는 객체는 새로운 region 집합으로 복사되거나 evacuated된다.
-특정 객체의 목적지 region은 객체의 나이에 따른다. 충분히 나이든 객체는 old generation으로 옮겨진다.
-그렇지 않을 경우, 객체는 survivor region으로 옮겨지며, 다음 young CG나 mixed GC의 CSet에 포함된다
+#### Young Garbage Collections
+- G1 GC는 eden을 구성하는 region으로부터의 할당 요청을 만족한다.
+- young GC 동안, 이전 GC의 eden region과 survivor region에 대해 GC을 실행한다.
+- eden과 survivor의 살아있는 객체는 새로운 region 집합으로 복사되거나 evacuated된다.
+- 특정 객체의 목적지 region은 객체의 나이에 따라 달라진다.
+- 충분히 나이든 객체는 old generation으로 옮겨진다. 그렇지 않을 경우 객체는 survivor region으로 옮겨지며, 다음 young CG나 mixed GC의 CSet에 포함된다.
 
-Mixed Garbage Collections
-concurrent marking cycle이 성공적으로 끝난 후에는 mixed GC를 수행한다.
-이 과정 동안 오래된 region을 GC될 eden과 survivor region에 더한다.
-(몇 번의 mixed GC를 거쳐) 충분한 old region을 GC한 후, 다음 marking cycle이 끝날 때까지 다시 young GC를 실행한다.
+#### Mixed Garbage Collections
+- concurrent marking cycle이 성공적으로 끝난 후에는 mixed GC를 수행한다.
+- 이 과정 동안 오래된 region을 GC될 eden과 survivor region에 더한다.
+- (몇 번의 mixed GC를 거쳐) old region을 충분히 GC한 후, 다음 marking cycle이 끝날 때까지 다시 young GC를 실행한다.
 
-Phases of the marking cycle
+### Phases of the marking cycle
 1. initial mark phase
- root를 mark. 
+  + root를 mark. 
 2. root region scanning phase
- The G1 GC scans survivor regions of the initial mark for references to the old generation and marks the referenced objects.
- 애플리케이션 실행과 동시에 실행되며 다음 STW young GC 시작 전에 끝나야만 한다
+  + scans survivor regions of the initial mark for references to the old generation and marks the referenced objects.
+  + 애플리케이션 실행과 동시에 실행되며 다음 STW young GC 시작 전에 끝나야만 한다.
 3. concurrent marking phase
- reachable (live) 객체를 전 heap에 걸쳐 찾는다.
- 애플리케이션 실행과 동시에 일어나며 STW young GC에 의해 방해받을 수 있다
+  + reachable (live) 객체를 전 heap에 걸쳐 찾는다.
+  + 애플리케이션 실행과 동시에 일어나며 STW young GC에 의해 방해받을 수 있다.
 4. remark phase
- SWT collection이며, marking cycle 종료를 돕는다.
- SATB 버퍼를 비우고, 확인 안한 살아있는 객체를 추적하고, reference processing을 수행한다
+  + STW collection이며, marking cycle 종료를 돕는다.
+  + SATB 버퍼를 비우고, 확인 안한 살아있는 객체를 추적하고, reference processing을 수행한다.
 5. cleanup phase
- accounting이란 STW 동작과 RSet scrubbing을 수행한다
- accounting 동안, 완전히 비워진 region과 mixed GC 후보를 식별한다
- 이 단계는 리셋 후 빈 region을 free list로 반환할 때 부분적으로 concurrent하다.
+  + accounting이라고 불리는 STW 동작과 RSet scrubbing을 수행한다.
+  + accounting 동안, 완전히 비워진 region과 mixed GC 후보를 식별한다.
+  + 이 단계는 리셋 후 빈 region을 free list로 반환할 때 부분적으로 concurrent하다.
 
 
 ## Z GC
