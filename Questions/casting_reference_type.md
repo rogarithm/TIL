@@ -6,19 +6,56 @@
 
 ### 참조 타입의 형변환 - 책에서 설명하는 형 변환의 기준이 잘 이해되지 않았다
 
-* **공통 전제** - child가 sub class, parent가 super class일 때 (`child extends parent`)
+* **공통 전제** - Child가 sub class, Parent가 super class일 때
+```java
+public class Child extends Parent {
+	public Child() {
+	}
 
-1. sub class에서 super class로 형 변환
-`parent = child`: 가능하다
+	public Child(String name) {
+	}
 
-2. super class에서 sub class로 형 변환<br>
-* `child = parent`: 불가능하다.<br>
-* `child = (child) parent`: 컴파일 에러는 뜨지 않지만, 실행 에러가 뜬다. 이렇게도 불가능.<br>
+	public void printName() {
+		System.out.println("printName() - Child");
+	}
+
+	public void printAge() {
+		System.out.println("printAge() - I'm 18 month");
+	}
+}
+```
+```java
+public class Parent {
+	public Parent() {
+	}
+
+	public Parent(String name) {
+	}
+
+	public void printName() {
+		System.out.println("printName() - Parent");
+	}
+}
+```
+1. sub class type에서 super class type으로 형 변환
+`Parent parent = new Child();`: 가능하다
+
+2. super class type에서 sub class type으로 형 변환<br>
+* 다음과 같이 하면 컴파일부터 불가능하다.<br>
+```java
+Parent parent = new Parent();
+Child child = parent;
+```
+* 다음과 같이 하면 컴파일 에러는 뜨지 않지만, 실행 에러가 뜬다. 따라서 불가능하다.<br>
+```java
+Parent parent = new Parent();
+Chile child = (child) parent;
+```
 * 다음과 같이 하면 가능하다. 즉, parent2는 사실 child 타입이어야 한다는 것이다.<br>
 ```
 Child child = new Child();
-Parent parent2 = child;
-Child child2 = (Child) parent2
+Parent parent = child;
+Child child2 = (Child) parent;
 ```
 
 ### 왜 참조 타입의 형변환 동작 방식이 이해가 안되는가?
