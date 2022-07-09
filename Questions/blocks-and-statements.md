@@ -23,7 +23,7 @@ public class FinallySample {
 	public void finallySample() {
 		int[] intArray = new int[5];
 		try {
-			System.out.println(intArray[4]);
+			System.out.println(intArray[5]);
 		} catch (Exception e) {
 			System.out.println(intArray.length);
 			return;
@@ -36,9 +36,8 @@ public class FinallySample {
 ```
 결과는 다음과 같았다.
 ```bash
-0
+5
 Here is finally
-This code must run.
 ```
 
 ### 왜 `return`이 `catch`문 안에 있음에도 불구하고 `finally` 안 문장이 실행되었나?
