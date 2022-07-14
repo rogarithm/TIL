@@ -14,7 +14,7 @@
 
 **Q1. 어디로 전달되나?**
 
-### local variables
+## local variables
 
 프레임마다 지역 변수(local variables)의 배열이 있다. 프레임의 지역 변수 배열 길이는 compile-time에 정해지고, 프레임에 연관된 메서드의 코드와 함께 클래스나 인터페이스의 이진 표현으로 주어진다.
 
