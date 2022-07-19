@@ -1,3 +1,5 @@
+자바 명세 중 의미가 잘 이해 안되는 부분 https://d2.naver.com/helloworld/1230 보고 다듬기
+
 # run-time data area
 **\* JVM 명세 중 [2.5 Run-Time Data Areas](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.5)를 참조했다**
 
