@@ -49,7 +49,7 @@ mysql> select * from members;
 
 ## Could not create connection to database server 에러
 - tomcat으로 mysql 데이터베이스에 접근하려고 할 때 이 에러가 발생할 수 있다.
-- 이 에러는 DB 버전과 드라이버 버전 차이가 나서 [발생할 수 있다](https://needneo.tistory.com/198](https://needneo.tistory.com/198).
+- 이 에러는 DB 버전과 드라이버 버전 차이가 나서 [발생할 수 있다](https://needneo.tistory.com/198).
 - mysql가 8.0.17, mysql-connector는 mysql-connector-java-5.1.35인 경우 발생함을 확인했다.
 - mysql-connector 버전을 mysql-connector-java-8.0.17로 변경했을 때 에러가 사라졌다.
 - 프로젝트에 포함할 mysql-connector 파일 포맷이 .bin.jar이었는데, 최근 버전의 경우 이 포맷이 더 이상 [만들어지지 않는 것 같다](https://community.atlassian.com/t5/Confluence-questions/Can-t-find-mysql-connector-java-8-0-xx-bin-jar/qaq-p/1466268). 대신 .jar 포맷을 넣으면 된다. 
