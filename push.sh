@@ -9,13 +9,12 @@ cd ~/study/TIL/${dir_name} #2022-09
 
 if [[ $1 == 'today' ]]; then
 	day=$(date "+%Y%m%d")
-	echo "ADDING TIL OF " ${day}
-	git add ${day}.md && git cm -m "${day}"
 elif [[ $1 == 'yesterday' ]]; then
 	day=$(date -v -1d '+%Y%m%d')
-	echo "ADDING TIL OF " ${day}
-	git add ${day}.md && git cm -m "${day}"
 fi
+
+echo "ADDING TIL OF " ${day}
+git add ${day}.md && git cm -m "${day}"
 
 echo "PUSH TO REMOTE REPOSITORY..."
 git push origin main
