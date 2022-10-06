@@ -4,17 +4,18 @@
 # 스크립트가 있는 위치에서 ./push.sh 20220924를 실행하면 20220924.md 파일을 커밋하고 원격 저장소에 푸시한다.
 dir_name=$(date "+%Y-%m")
 day=""
-echo ${dir_name}
-#cd ~/study/TIL/${dir_name} #2022-09
+echo "DIRECTORY NAME: " ${dir_name}
+cd ~/study/TIL/${dir_name} #2022-09
 
 if [[ $1 == 'today' ]]; then
 	day=$(date "+%Y%m%d")
-	echo ${day}
-	#git add ${day}.md && git cm -m "${day}"
+	echo "ADDING TIL OF " ${day}
+	git add ${day}.md && git cm -m "${day}"
 elif [[ $1 == 'yesterday' ]]; then
 	day=$(date -v -1d '+%Y%m%d')
-	echo ${day}
-	#git add ${day}.md && git cm -m "${day}"
+	echo "ADDING TIL OF " ${day}
+	git add ${day}.md && git cm -m "${day}"
 fi
 
-#git push origin main
+echo "PUSH TO REMOTE REPOSITORY..."
+git push origin main
