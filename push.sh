@@ -7,11 +7,12 @@ day=""
 echo "DIRECTORY NAME: " ${dir_name}
 cd ~/study/TIL/${dir_name} #2022-09
 
-if [[ $1 == 'today' ]]; then
-	day=$(date "+%Y%m%d")
-elif [[ $1 == 'yesterday' ]]; then
-	day=$(date -v -1d '+%Y%m%d')
-fi
+char=$1
+case "$char"
+	in
+	-y | --yesterday) day=$(date -v -1d '+%Y%m%d');;
+	-t | --today) day=$(date "+%Y%m%d");;
+esac
 
 echo "ADDING TIL OF " ${day}
 git add ${day}.md && git cm -m "${day}"
