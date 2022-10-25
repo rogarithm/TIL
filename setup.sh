@@ -22,7 +22,7 @@ case "$arg" in
 esac
 
 til_dir=~/study/TIL/$(date -v ${arg}d "+%Y-%m")
-til_file_prefix=$(date -v -0d "+%Y%m%d")
+til_file_prefix=$(date -v ${arg}d "+%Y%m%d")
 
 echo "setting up til " ${arg} "day from today: " $(date -v ${arg}d "+%Y-%m-%d") >&2
 echo "directory is " ${til_dir} >&2
