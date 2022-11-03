@@ -15,6 +15,7 @@ case "$char"
 esac
 
 sed -i -e "s/^	/  /g" ${day}.md # 자동 줄바꿈시 들어가는 탭 문자를 빈칸 두 개로 바꾼다.
+rm ${day}.md-e
 
 echo "ADDING TIL OF " ${day} >&2
 git add ${day}.md && git cm -m "${day}"
